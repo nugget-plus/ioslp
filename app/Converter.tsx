@@ -38,7 +38,13 @@ export default function Converter() {
     const { FFmpeg } = await import("@ffmpeg/ffmpeg");
     const { toBlobURL } = await import("@ffmpeg/util");
 
-    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
+    // Single-threaded core works without SharedArrayBuffer (safe on mobile Safari)
+    const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm";
+    const stURL   = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
+
+    const hasSharedArrayBuffer = typeof SharedArrayBuffer !== "undefined";
+    const coreBase = hasSharedArrayBuffer ? baseURL : stURL;
+
     const ffmpeg = new FFmpeg();
 
     ffmpeg.on("progress", ({ progress: p }: { progress: number }) => {
@@ -46,8 +52,11 @@ export default function Converter() {
     });
 
     await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+      coreURL: await toBlobURL(`${coreBase}/ffmpeg-core.js`, "text/javascript"),
+      wasmURL: await toBlobURL(`${coreBase}/ffmpeg-core.wasm`, "application/wasm"),
+      ...(hasSharedArrayBuffer && {
+        workerURL: await toBlobURL(`${coreBase}/ffmpeg-core.worker.js`, "text/javascript"),
+      }),
     });
 
     ffmpegRef.current = ffmpeg;

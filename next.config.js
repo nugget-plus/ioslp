@@ -1,16 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    // Type errors are caught locally; don't block Vercel deploy
     ignoreBuildErrors: true,
   },
   async headers() {
     return [
       {
-        source: "/(.*)",
+        // Only the main converter page needs SharedArrayBuffer for FFmpeg WASM
+        source: "/",
         headers: [
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
+        ],
+      },
+      {
+        // API routes must NOT have COEP — breaks multipart uploads from Shortcuts
+        source: "/api/(.*)",
+        headers: [
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
         ],
       },
     ];
