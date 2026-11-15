@@ -394,7 +394,9 @@ export default function Converter() {
       <footer className={styles.footer}>
         Conversion runs entirely in your browser — no files are uploaded.
         &ensp;·&ensp;
-        <a href="/api/convert" target="_blank">API docs</a>
+        <a href="/shortcut" target="_blank">iOS Shortcuts setup</a>
+        &ensp;·&ensp;
+        <a href="/api/convert" target="_blank">API</a>
       </footer>
     </div>
   );
