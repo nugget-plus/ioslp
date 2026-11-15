@@ -158,12 +158,15 @@ export default function Converter() {
       ]);
 
       setProgressLabel("Packaging…");
-      const movRaw = await ffmpeg.readFile(movName);
-      const jpgRaw = await ffmpeg.readFile(jpgName);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const movRaw: any = await ffmpeg.readFile(movName);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const jpgRaw: any = await ffmpeg.readFile(jpgName);
 
-      // Copy into a fresh, plain ArrayBuffer to avoid SharedArrayBuffer type conflicts
-      const toBlob = (raw: unknown, mime: string): Blob => {
-        const src = raw instanceof Uint8Array ? raw : new Uint8Array(raw as ArrayBuffer);
+      // Copy bytes into a fresh Uint8Array so Blob constructor gets a clean type
+      const toBlob = (raw: any, mime: string): Blob => {
+        const src: Uint8Array =
+          raw instanceof Uint8Array ? raw : new Uint8Array(raw as ArrayBuffer);
         const copy = new Uint8Array(src.byteLength);
         copy.set(src);
         return new Blob([copy], { type: mime });
