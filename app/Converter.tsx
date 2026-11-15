@@ -158,12 +158,14 @@ export default function Converter() {
       ]);
 
       setProgressLabel("Packaging…");
-      const movData: Uint8Array = await ffmpeg.readFile(movName);
-      const jpgData: Uint8Array = await ffmpeg.readFile(jpgName);
+      const movRaw = await ffmpeg.readFile(movName);
+      const jpgRaw = await ffmpeg.readFile(jpgName);
+      const movData = movRaw instanceof Uint8Array ? movRaw : new Uint8Array(movRaw as ArrayBuffer);
+      const jpgData = jpgRaw instanceof Uint8Array ? jpgRaw : new Uint8Array(jpgRaw as ArrayBuffer);
 
       setOutput({
-        mov: new Blob([movData], { type: "video/quicktime" }),
-        jpg: new Blob([jpgData], { type: "image/jpeg" }),
+        mov: new Blob([movData.buffer as ArrayBuffer], { type: "video/quicktime" }),
+        jpg: new Blob([jpgData.buffer as ArrayBuffer], { type: "image/jpeg" }),
         movName,
         jpgName,
       });
