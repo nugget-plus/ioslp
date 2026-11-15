@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import styles from "./Converter.module.css";
 
 type Stage = "idle" | "loading-ffmpeg" | "ready" | "converting" | "done" | "error";
@@ -160,12 +160,18 @@ export default function Converter() {
       setProgressLabel("Packaging…");
       const movRaw = await ffmpeg.readFile(movName);
       const jpgRaw = await ffmpeg.readFile(jpgName);
-      const movData = movRaw instanceof Uint8Array ? movRaw : new Uint8Array(movRaw as ArrayBuffer);
-      const jpgData = jpgRaw instanceof Uint8Array ? jpgRaw : new Uint8Array(jpgRaw as ArrayBuffer);
+
+      // Copy into a fresh, plain ArrayBuffer to avoid SharedArrayBuffer type conflicts
+      const toBlob = (raw: unknown, mime: string): Blob => {
+        const src = raw instanceof Uint8Array ? raw : new Uint8Array(raw as ArrayBuffer);
+        const copy = new Uint8Array(src.byteLength);
+        copy.set(src);
+        return new Blob([copy], { type: mime });
+      };
 
       setOutput({
-        mov: new Blob([movData.buffer as ArrayBuffer], { type: "video/quicktime" }),
-        jpg: new Blob([jpgData.buffer as ArrayBuffer], { type: "image/jpeg" }),
+        mov: toBlob(movRaw, "video/quicktime"),
+        jpg: toBlob(jpgRaw, "image/jpeg"),
         movName,
         jpgName,
       });
